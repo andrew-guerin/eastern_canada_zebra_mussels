@@ -31,16 +31,11 @@ n_amer <- rbind(can,usa)
 provlims <- ne_states(country="canada", returnclass = "sf") %>%
   filter(name %in% c("Québec",
                      "New Brunswick",
-                     #"Ontario",
-                     #"Newfoundland and Labrador",
-                     #"Nunavut",
                      "Prince Edward Island",
                      "Nova Scotia")) 
 
 statlims <- ne_states(country="united states of america", returnclass = "sf") %>% 
   filter(name %in% c("Maine",
-                     #"Vermont",
-                     #"New York",
                      "New Hampshire"
                      ))
 
@@ -87,7 +82,7 @@ sampling_sites <- bind_rows(benthic_sites,plant_sites,veliger_sites) %>%
 site_positions <- sampling_sites %>% st_as_sf(coords=c("longitude","latitude"),crs=crs1) 
 label_positions <- sampling_sites %>% st_as_sf(coords=c("longitude_adj","latitude_adj"),crs=crs1) 
 
-# generate individual maps
+# generate component maps
 
 wide_area <-    
   ggplot() +
@@ -180,7 +175,7 @@ study_map <- ggarrange(
                        font.label=list(size=20))
 
 ggsave(
-  filename = "figures/study_map.png",
+  filename = "figures/figure1_study_map.png",
   plot = study_map,
   device = "png",
   path = NULL,
