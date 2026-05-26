@@ -1,3 +1,5 @@
+# this script generates Figure 2 for the Weise et al (2026) article
+# map showing zebra mussel densities at sites in Lake Témiscouata from 2022-2024 
 
 library(tidyverse)
 library(readxl)
@@ -70,11 +72,11 @@ data23 <- read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="counts_2023
   summarise(n=n(),
             mndens = mean(total) %>% signif(digits=3))
 
-quadlist24 <- read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="lengths_2024") %>% 
+quadlist24 <- read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2024") %>% 
   dplyr::select(site,quadrat,taille_quadrat) %>%
   distinct()
 
-data24 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="lengths_2024") %>%
+data24 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2024") %>%
   dplyr::select(site,quadrat,nombre) %>%
   group_by(site,quadrat) %>%
   summarise(total=sum(nombre)) %>%
