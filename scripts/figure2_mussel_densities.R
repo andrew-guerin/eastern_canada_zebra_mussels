@@ -12,7 +12,7 @@ crs1 <- 4326 # WGS84 lat-long
 temi <- st_read("data/geodata/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Lac Témiscouata") 
 
 # get site locations
-locations <- read_xlsx("data/source_data/sitelist.xlsx", sheet="benthic") %>% 
+locations <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="benthic") %>% 
   rename(site = site_orig) %>%
   mutate(latitude_lett = case_when(site_id == "A" ~ latitude - 0.001, # these will be the positions of the letter labels on the plot 
                                    site_id == "B" ~ latitude,

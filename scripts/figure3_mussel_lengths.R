@@ -12,7 +12,7 @@ library(ggpubr)
 
 #Chargement des donnees
 
-locations <- read_xlsx("data/source_data/sitelist.xlsx", sheet="benthic") %>% 
+locations <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="benthic") %>% 
   rename(site = site_orig) %>%
   dplyr::select(site,site_id)
 

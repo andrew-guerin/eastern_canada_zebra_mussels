@@ -46,17 +46,17 @@ terrs <- rbind(provlims,statlims)
 bvsj <- read_sf("data/geodata/hybas/hybas_na_lev05_v1c.shp") %>% filter(HYBAS_ID == 7050038320)
 
 # sampling site locations
-benthic_sites <- read_xlsx("data/source_data/sitelist.xlsx", sheet="benthic") %>%
+benthic_sites <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="benthic") %>%
   mutate(site_id = case_when(site_id == "P" ~ "Dégelis Marina (P)",
                              TRUE ~ site_id),
          site_type = "benthic") %>%
   dplyr::select(2:5)
 
-plant_sites <- read_xlsx("data/source_data/sitelist.xlsx", sheet="plant") %>%
+plant_sites <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="plant") %>%
   mutate(site_type = "plant") %>%
   dplyr::select(2:5)
 
-veliger_sites <- read_xlsx("data/source_data/sitelist.xlsx", sheet="veliger") %>%
+veliger_sites <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="veliger") %>%
   mutate(site_type = "veliger") %>%
   filter(site_id %in% c("Dégelis Dam", "Dégelis Bridge")) 
 
