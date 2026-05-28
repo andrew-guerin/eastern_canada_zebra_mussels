@@ -9,7 +9,7 @@ library(ggspatial)
 crs1 <- 4326 # WGS84 lat-long
 
 # load temiscouata outline, obtained from https://www.donneesquebec.ca/recherche/dataset/grhq
-temi <- st_read("data/geodata/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Lac Témiscouata") 
+temi <- st_read("data/geodata/quebec_lakes_rivers/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Lac Témiscouata")
 
 # get site locations
 locations <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="benthic") %>% 

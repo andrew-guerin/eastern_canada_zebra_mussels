@@ -58,8 +58,8 @@ rsj3 <- st_split(rsj,latcut1) %>%
 
 # Other sampled river systems
 # Madawaska and Matapédia rivers using data from https://www.donneesquebec.ca/recherche/dataset/grhq
-madawaska <- st_read("data/geodata/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Madawaska")
-matapedia <- st_read("data/geodata/GRHQ_01AI_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Matapédia")
+madawaska <- st_read("data/geodata/quebec_lakes_rivers/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Madawaska")
+matapedia <- st_read("data/geodata/quebec_lakes_rivers/GRHQ_01AI_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Matapédia")
 
 # Some New Brunswick Rivers using data from https://www.gnb.ca/en/campaign/geonb/data-catalogue/hydrographic-network.html
 tobique <- st_read("data/geodata/nb_watercourse.gdb") %>% filter(NAME1 == "Tobique River")

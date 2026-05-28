@@ -13,7 +13,7 @@ sf_use_s2(FALSE)
 # load basemap data 
 
 # lake and river data obtained from https://www.donneesquebec.ca/recherche/dataset/grhq
-lakes_rivers <- st_read("data/geodata/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% st_transform(crs=crs1)
+lakes_rivers <- st_read("data/geodata/quebec_lakes_rivers/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% st_transform(crs=crs1)
 
 temi <- lakes_rivers %>% filter(TOPONYME == "Lac Témiscouata")
 

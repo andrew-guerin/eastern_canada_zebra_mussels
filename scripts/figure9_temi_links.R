@@ -70,8 +70,8 @@ rsj <- ne_download(scale = 10, type = "rivers_lake_centerlines", category = "phy
 stlaw <- ne_download(scale = 10, type = "rivers_lake_centerlines", category = "physical", load = T, returnclass = "sf") %>% filter(name=="Saint Lawrence") 
 
 # Madawaska and Matapédia rivers using data from https://www.donneesquebec.ca/recherche/dataset/grhq
-madawaska <- st_read("data/geodata/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Madawaska")
-matapedia <- st_read("data/geodata/GRHQ_01AI_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Matapédia")
+madawaska <- st_read("data/geodata/quebec_lakes_rivers/GRHQ_01AE_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Madawaska")
+matapedia <- st_read("data/geodata/quebec_lakes_rivers/GRHQ_01AI_GRP.gdb",layer="RH_S") %>% filter(TOPONYME == "Rivière Matapédia")
 
 # Some New Brunswick Rivers using data from https://www.gnb.ca/en/campaign/geonb/data-catalogue/hydrographic-network.html
 tobique <- st_read("data/geodata/nb_watercourse.gdb") %>% filter(NAME1 == "Tobique River")
