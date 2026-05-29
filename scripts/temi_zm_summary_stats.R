@@ -51,3 +51,33 @@ data_combined <- data22 %>% mutate(year="2022") %>%
   pivot_wider(names_from = year,
               values_from = c(n,mndens,mxdens)) %>%
   left_join(locations)
+
+## Calculate maximum sizes
+
+big22 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2022") %>%
+  left_join(locations) %>%
+  group_by(site_id) %>%
+  summarise(biggest22=max(as.numeric(longueur),na.rm=TRUE) %>% round(digits=1)) %>%
+  dplyr::select(site_id,biggest22)
+
+big23 <- read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="lengths_2023") %>%
+  filter(!(site %in% c(4,8,10,15))) %>%
+  left_join(locations) %>%
+  group_by(site_id) %>%
+  summarise(biggest23=max(as.numeric(longueur),na.rm=TRUE) %>% round(digits=1)) %>%
+  dplyr::select(site_id,biggest23)
+
+big24 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2024") %>%
+  group_by(site) %>%
+  left_join(locations) %>%
+  group_by(site_id) %>%
+  summarise(biggest24=max(as.numeric(longueur),na.rm=TRUE) %>% round(digits=1)) %>%
+  dplyr::select(site_id,biggest24)
+
+biggest_mussels <- big22 %>%
+  left_join(big23) %>%
+  left_join(big24)
+
+# the lake-wide maximum is simply the largest mussel from any site in any given year
+
+
