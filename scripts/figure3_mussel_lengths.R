@@ -1,6 +1,7 @@
 # This script generates Figure 3 for the Weise et al (2026) article
 # This shows the size distributions of zebra mussels at a selection of sites in Lake Témiscouata
 # It also generates Supplementary Figure 3, which includes all sites
+# It also generates information on proportions of Young-of-Year mussels for Table 2
 
 library(tidyverse)
 library(readxl) #chargement des fichiers au format xlsx
@@ -303,3 +304,97 @@ ggsave(
   dpi = 300,
   limitsize = TRUE,
   bg = "white")  
+
+
+## Calculate proportion Young-of-Year using 10mm cut-off 
+
+# 2022 - lakewide
+
+sub10_22_lake <- mz_2022 %>% filter(longueur < 10) 
+over10_22_lake <- mz_2022 %>% filter(longueur >= 10) 
+prop10_22_lake <- nrow(sub10_22_lake) / (nrow(sub10_22_lake) + nrow(over10_22_lake)) * 100
+
+# 2022 - by site 
+
+sub10_22 <- mz_2022 %>% 
+  left_join(locations) %>%
+  filter(longueur < 10) %>% 
+  group_by(site_id) %>% 
+  summarise(nyoy=n())
+
+over10_22 <- mz_2022 %>% 
+  left_join(locations) %>%
+  filter(longueur >= 10) %>% 
+  group_by(site_id) %>% 
+  summarise(nold=n())
+
+prop10_22 <- full_join(sub10_22,over10_22, by="site_id") %>%
+  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
+         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
+         p10_22 = round(nyoy / (nyoy + nold) * 100))
+
+# 2023 - lakewide
+
+sub10_23_lake <- hist_data_2023 %>% filter(longueur < 10) 
+over10_23_lake <- hist_data_2023 %>% filter(longueur >= 10) 
+prop10_23_lake <- nrow(sub10_23_lake) / (nrow(sub10_23_lake) + nrow(over10_23_lake)) * 100
+
+sub10_23 <- hist_data_2023 %>% filter(longueur < 10) %>% group_by(site_id) %>% summarise(nyoy=n())
+over10_23 <- hist_data_2023 %>% filter(longueur >= 10) %>% group_by(site_id) %>% summarise(nold=n())
+
+prop10_23 <- full_join(sub10_23,over10_23, by="site_id") %>%
+  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
+         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
+         p10_23 = round(nyoy / (nyoy + nold) * 100))
+
+# 2023 - by site 
+
+sub10_23 <- lengths23 %>% 
+  left_join(locations) %>%
+  filter(longueur < 10) %>% 
+  group_by(site_id) %>% 
+  summarise(nyoy=n())
+
+over10_23 <- lengths23 %>% 
+  left_join(locations) %>%
+  filter(longueur >= 10) %>% 
+  group_by(site_id) %>% 
+  summarise(nold=n())
+
+prop10_23 <- full_join(sub10_23,over10_23, by="site_id") %>%
+  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
+         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
+         p10_23 = round(nyoy / (nyoy + nold) * 100))
+
+# 2024 - lakewide
+
+sub10_24_lake <- hist_data_2024 %>% filter(longueur < 10) 
+over10_24_lake <- hist_data_2024 %>% filter(longueur >= 10) 
+prop10_24_lake <- nrow(sub10_24_lake) / (nrow(sub10_24_lake) + nrow(over10_24_lake)) * 100
+
+sub10_24 <- hist_data_2024 %>% filter(longueur < 10) %>% group_by(site_id) %>% summarise(nyoy=n())
+over10_24 <- hist_data_2024 %>% filter(longueur >= 10) %>% group_by(site_id) %>% summarise(nold=n())
+
+prop10_24 <- full_join(sub10_24,over10_24, by="site_id") %>%
+  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
+         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
+         p10_24 = round(nyoy / (nyoy + nold) * 100))
+
+# 2024 - by site 
+
+sub10_24 <- mz_2024 %>% 
+  left_join(locations) %>%
+  filter(longueur < 10) %>% 
+  group_by(site_id) %>% 
+  summarise(nyoy=n())
+
+over10_24 <- mz_2024 %>% 
+  left_join(locations) %>%
+  filter(longueur >= 10) %>% 
+  group_by(site_id) %>% 
+  summarise(nold=n())
+
+prop10_24 <- full_join(sub10_24,over10_24, by="site_id") %>%
+  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
+         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
+         p10_24 = round(nyoy / (nyoy + nold) * 100))

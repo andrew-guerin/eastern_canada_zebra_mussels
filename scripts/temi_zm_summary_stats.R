@@ -3,7 +3,7 @@
 library(tidyverse)
 library(readxl)
 
-## Calculate average and maximum mussel densities lakewide and per site 
+## Calculate average and maximum mussel densities recorded at each site in each year 
 
 locations <- read_xlsx("data/source_data/temi_sitelist.xlsx", sheet="benthic") %>% rename(site = site_orig) %>% dplyr::select(site,site_id)
 
@@ -52,6 +52,39 @@ data_combined <- data22 %>% mutate(year="2022") %>%
               values_from = c(n,mndens,mxdens)) %>%
   left_join(locations)
 
+# calculate lake-wide statistics
+
+lakewide22 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2022") %>%
+  group_by(site,quadrat) %>%
+  summarise(total=sum(nombre),
+            density=total/0.25) %>%
+  ungroup() %>%
+  summarise(n=n(),
+            mndens = mean(density) %>% signif(digits=3),
+            mxdens = max(density))
+
+lakewide23 <- read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="counts_2023") %>%
+  dplyr::select(2:5) %>%
+  rowwise() %>%
+  mutate(adults=as.numeric(nb_gros) / 0.25,
+         juvs=as.numeric(nb_5mm) / 0.25, 
+         total=juvs + adults) %>%
+  ungroup() %>%
+  summarise(n=n(),
+            mndens = mean(total) %>% signif(digits=3),
+            mxdens = max(total))
+
+lakewide24 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2024") %>%
+  dplyr::select(site,quadrat,nombre) %>%
+  group_by(site,quadrat) %>%
+  summarise(total=sum(nombre)) %>%
+  ungroup() %>%
+  left_join(quadlist24) %>%
+  mutate(density= total / taille_quadrat) %>%
+  summarise(n=n(),
+            mndens = mean(density) %>% signif(digits=3),
+            mxdens = max(density))
+
 ## Calculate maximum sizes
 
 big22 <-  read_xlsx("data/source_data/temi_mussel_data.xlsx", sheet="data_2022") %>%
@@ -78,6 +111,5 @@ biggest_mussels <- big22 %>%
   left_join(big23) %>%
   left_join(big24)
 
-# the lake-wide maximum is simply the largest mussel from any site in any given year
-
+# the lake-wide maximum length is simply the largest mussel reported at any site in any given year
 
