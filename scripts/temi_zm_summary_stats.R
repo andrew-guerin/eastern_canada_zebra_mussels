@@ -1,4 +1,5 @@
 # this script calculates summary statistics used to populate Table 2 for the Weise et al (2026) article
+# proportions of young-of-year mussels are calculated in the script used to generate Figure 3
 
 library(tidyverse)
 library(readxl)

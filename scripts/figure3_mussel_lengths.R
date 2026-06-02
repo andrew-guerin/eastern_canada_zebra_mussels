@@ -125,25 +125,40 @@ sim_data_long_2024 <- mes_sim_2024 %>%
 
 mes_data_long_2024 <- mz_2024 %>% filter(!is.na(longueur) | nombre == 0) # pour garder les quadrats vides
 
-#donnees tamis 0.5
-sim_05_2024<-mz_2024 %>% 
-  filter(strate %in% 0.5) %>% 
-  summarise(mean=mean(longueur, na.rm=T), 
-            variance=var(longueur, na.rm=T),
-            skewness=skewness(longueur, na.rm=T), 
-            kurtosis=kurtosis(longueur, na.rm=T)) %>% 
-  as.vector() %>% 
-  unlist() %>% 
-  rpearson(n=mz_2024 %>% 
-             filter(strate %in% 0.5, nombre>1) %>% summarise(sum(nombre)), 
-           moments = .)
+# donnees tamis 0.5
+# mussel data from the finest grid sieve will be simulated using a lognormal distribution (avoids mussels with negative weights)  
+
+# find the number of mussels for which we need simulated lengths
+nmes_05_2024 <- mz_2024 %>% 
+  filter(strate == 0.50 & nombre > 1) %>%
+  uncount(nombre)
+
+# gather the data for measured mussels from the 0.5 mm sieve and obtain the parameters needed for the lognormal distribution
+sim05_info <- mz_2024 %>% 
+  filter(strate %in% 0.5 & !is.na(longueur)) %>% 
+  mutate(logdat=log(longueur)) %>%
+  summarise(logmean=mean(logdat),
+            logsd=sd(logdat))
+
+# now simulate the lengths for the required number of mussels, using the above parameters
+sim_05_2024 <- rlnorm(n=nrow(nmes_05_2024),
+                      meanlog = sim05_info$logmean,
+                      sdlog = sim05_info$logsd)
 
 sim_05_long_2024 <- mz_2024 %>%
-  filter(strate %in% 0.5) %>% 
+  filter(strate %in% 0.5 & nombre > 1) %>% 
   uncount(nombre) %>% 
-  mutate(longueur=ifelse(is.na(longueur), sim_05_2024, longueur)) %>% 
+  mutate(longueur=sim_05_2024) %>% 
   mutate(nombre=1, .before = strate)
 
+# peek at the 0.5 data
+ggplot(data=sim_05_long_2024, aes(x=longueur))+
+  geom_histogram()+
+  facet_wrap(~site_id, scales="free_y")
+
+ggplot(data=sim_05_long_2024, aes(x=longueur)) + geom_histogram()
+
+# combine all the data for 2024
 hist_data_2024 <- rbind(mes_data_long_2024, sim_data_long_2024, sim_05_long_2024) %>% # combine measured and simulated length data
   group_by(site_id) %>% 
   mutate(pond=(nombre/taille_quadrat)/length(unique(quadrat))) %>%  #standardise a la fois par m2 et en moyenne pour le site
@@ -154,7 +169,10 @@ ggplot(data=hist_data_2024, aes(x=longueur, weights=pond))+
   geom_histogram()+
   facet_wrap(~site_id, scales="free_y")
 
-# Combinaison des trois annees
+# Combine the data from the three years
+
+comb_hist_data <- rbind(hist_data_2022,hist_data_2023,hist_data_2024) %>% 
+  mutate(annee=as.factor(annee))
 
 # Plotting by Site 
 # Define all site letters
@@ -168,15 +186,6 @@ plot_list <- list()
 for(site in site_letters) {
   # Filter data for this site
   site_data <- filter(comb_hist_data, site_id==site)
-  
-  # Calculate total density for each year at this site
-  year_totals <- site_data %>%
-    group_by(annee, site_id) %>%
-    summarise(total = sum(pond, na.rm = TRUE), .groups = 'drop')
-  library(matrixStats)
-  year_site_median<-site_data %>% 
-    group_by(annee) %>% 
-    summarise(median=weightedMedian(longueur, w = pond, na.rm = T))
   
   plot_list[[site]] <- 
     ggplot(data=site_data, 
@@ -366,35 +375,50 @@ prop10_23 <- full_join(sub10_23,over10_23, by="site_id") %>%
          nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
          p10_23 = round(nyoy / (nyoy + nold) * 100))
 
-# 2024 - lakewide
+# 2024 data. For 2024, not only were lengths of mussels simulated using subsamples, but also quadrat size varied
+# The variation in quadrat size is already accounted for in the plotting of the histograms above via the setting of plot weights
+# However, for calculating the proportions of YOY mussels here, we have to account for the variation in quadrat size. 
+# Again, the numbers may not come out exactly as in the manuscript, since the size distribution data are partially simulated
 
-sub10_24_lake <- hist_data_2024 %>% filter(longueur < 10) 
-over10_24_lake <- hist_data_2024 %>% filter(longueur >= 10) 
-prop10_24_lake <- nrow(sub10_24_lake) / (nrow(sub10_24_lake) + nrow(over10_24_lake)) * 100
+# prepare 2024 data
 
-sub10_24 <- hist_data_2024 %>% filter(longueur < 10) %>% group_by(site_id) %>% summarise(nyoy=n())
-over10_24 <- hist_data_2024 %>% filter(longueur >= 10) %>% group_by(site_id) %>% summarise(nold=n())
+quadrats_2024 <- hist_data_2024 %>%
+  distinct(site_id,quadrat,.keep_all = TRUE) %>%
+  mutate(scale = 1/taille_quadrat) %>%
+  dplyr::select(site_id,quadrat,scale)
 
-prop10_24 <- full_join(sub10_24,over10_24, by="site_id") %>%
-  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
-         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
-         p10_24 = round(nyoy / (nyoy + nold) * 100))
+yoy_per_quad_2024 <- hist_data_2024 %>%
+  filter(longueur < 10) %>%
+  group_by(site_id,quadrat) %>%
+  summarise(total_yoy = sum(nombre)) %>%
+  left_join(quadrats_2024,by=c("site_id","quadrat")) %>%
+  mutate(yoy_scaled = total_yoy * scale)
 
-# 2024 - by site 
+p10_per_quad_2024 <- hist_data_2024 %>%
+  filter(longueur >= 10) %>%
+  group_by(site_id,quadrat) %>%
+  summarise(total_p10 = sum(nombre)) %>%
+  left_join(quadrats_2024,by=c("site_id","quadrat")) %>%
+  mutate(p10_scaled = total_p10 * scale)
 
-sub10_24 <- mz_2024 %>% 
-  left_join(locations) %>%
-  filter(longueur < 10) %>% 
-  group_by(site_id) %>% 
-  summarise(nyoy=n())
+yoy_per_site_2024 <- yoy_per_quad_2024 %>% 
+  ungroup() %>%
+  group_by(site_id) %>%
+  summarise(yoy_cnt = sum(total_yoy),
+            yoy_cnt_scaled = sum(yoy_scaled))
 
-over10_24 <- mz_2024 %>% 
-  left_join(locations) %>%
-  filter(longueur >= 10) %>% 
-  group_by(site_id) %>% 
-  summarise(nold=n())
+p10_per_site_2024 <- p10_per_quad_2024 %>% 
+  ungroup() %>%
+  group_by(site_id) %>%
+  summarise(p10_cnt = sum(total_p10),
+            p10_cnt_scaled = sum(p10_scaled))
 
-prop10_24 <- full_join(sub10_24,over10_24, by="site_id") %>%
-  mutate(nyoy = case_when(is.na(nyoy) ~ 0, TRUE ~ nyoy),
-         nold = case_when(is.na(nold) ~ 0, TRUE ~ nold),
-         p10_24 = round(nyoy / (nyoy + nold) * 100))
+proportions <- full_join(yoy_per_site_2024,p10_per_site_2024) %>%
+  mutate(percent_counts = round(yoy_cnt / (yoy_cnt + p10_cnt) * 100, digits=0),
+         percent_counts_scaled = round(yoy_cnt_scaled / (yoy_cnt_scaled + p10_cnt_scaled) * 100, digits=0))
+
+# Lakewide calculation
+
+sub10_24_lake <- sum(yoy_per_site_2024$yoy_cnt_scaled)
+over10_24_lake <- sum(p10_per_site_2024$p10_cnt_scaled)
+prop10_24_lake <- round(sub10_24_lake / (sub10_24_lake + over10_24_lake)  * 100, digits = 0)

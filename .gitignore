@@ -4,8 +4,6 @@
 /data/geodata/nb_watercourse.gdb
 /data/geodata/quebec_lakes_rivers
 
-/figures
-
 *.Rproj
 
 .Rproj.user

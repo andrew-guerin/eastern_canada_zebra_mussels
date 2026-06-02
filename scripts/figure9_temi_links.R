@@ -1,5 +1,6 @@
 # This script generates Figure 9 for the Weise et al (2026) article
 # Shows links between Témiscouata and other locations, which were named by surveyed boaters
+# It also generates the list of sites, and the distances from Témiscouata to those sites, for Supplementary Table T6
 
 library(tidyverse)
 library(readxl)
@@ -7,6 +8,7 @@ library(rnaturalearth)
 library(sf)
 library(ggspatial)
 library(ggpubr)
+library(writexl)
 
 '%ni%' = Negate('%in%')
 
@@ -116,7 +118,7 @@ temi_outlinks <- survey_data %>%
   rename(lake1=lakeA,lake2=lakeB) 
 
 # links identified at other sites
-temi_inlinks <- data %>%
+temi_inlinks <- survey_data %>%
   filter(grepl("Témiscouata",destinations)) %>%
   rename(lake2 = waterbody,
          lake1 = destinations) %>%
@@ -339,4 +341,55 @@ ggsave(
   limitsize = TRUE,
   bg = "white")  
 
+## Assemble link list for Supplementary Table T6
+# calculate distances between pairs of lakes
 
+lakenames_col <- positions %>% 
+  filter(waterbody %ni% nonspec_or_marine$waterbody) %>%
+  dplyr::select(waterbody)
+
+lakenames_row <- lakenames_col %>% t() %>% as.data.frame()
+
+distances_matrix <- positions %>%
+  filter(waterbody %ni% nonspec_or_marine$waterbody) %>%
+  st_as_sf(coords = c("long","lat"), crs=4326) %>%
+  st_distance() %>% 
+  t() %>% 
+  as_tibble() 
+
+colnames(distances_matrix) <- lakenames_row[1,]
+
+distances <- lakenames_col %>% 
+  bind_cols(distances_matrix) %>%
+  pivot_longer(!waterbody, names_to = "lakeB", values_to = "distance") %>%
+  mutate(distance = round(as.numeric(distance / 1000))) %>%
+  filter(distance > 0) %>%
+  rowwise() %>%
+  mutate(lake1 = min(waterbody,lakeB),
+         lake2 = max(waterbody,lakeB)) %>%
+  dplyr::select(-waterbody,-lakeB) %>%
+  distinct() %>%
+  filter(lake1=="Témiscouata" | lake2=="Témiscouata") %>%
+  mutate(destination=case_when(lake1=="Témiscouata" ~ lake2,
+                               lake2=="Témiscouata" ~ lake1))
+
+distances_dests <- distances %>% 
+  dplyr::select(destination,distance) %>% 
+  left_join(positions %>% 
+              rename(destination=waterbody) %>%
+              dplyr::select(destination,type,lat,long))
+
+temilinks_external <- links_outregion %>% 
+  rename(destination=lake2) %>%
+  left_join(distances_dests) %>%
+  as.data.frame() %>%
+  dplyr::select(destination,type,lat,long,distance,n) 
+  
+temilinks_regional <- links_inregion %>% 
+  rename(destination=lake2) %>%
+  left_join(distances_dests) %>%
+  as.data.frame() %>%
+  dplyr::select(destination,type,lat,long,distance,n) 
+
+write_xlsx(temilinks_external,"data/temiscouata_external_links.xlsx")
+write_xlsx(temilinks_regional,"data/temiscouata_regional_links.xlsx")
