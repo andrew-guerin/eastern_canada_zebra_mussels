@@ -13,6 +13,6 @@ It includes:
 - Dissolved calcium data for Lake Témiscouata (2024)
 - Temperature data recorded in the Madawaska River (2022 to 2024)
 - Zebra mussel detection data (eDNA, veligers, settlement plates, visual surveys) for sites throughout the Saint John River catchment, along with some lakes in neighbouring catchments (2023 to 2024)
-- Information from surveys conducted at Lake Témiscouata and other lakes in the region (2023 to 2025), used to establish which locations are to Lake Témiscouata via overland displacements of recreational boaters
+- Information from surveys conducted at Lake Témiscouata and other lakes in the region (2023 to 2025), used to establish which locations are linked to Lake Témiscouata via overland displacements of recreational boaters
 
 Plotting of maps requires basemap data which are not included in the repository and must be downloaded from various sources. See individual scripts (and the README file in the /geodata folder) for details.
